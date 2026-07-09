@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${workspaceFolder}/.vscode/browse.vc.db",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/seohyeongmi/ros2_ws/install/yolo_msgs/include/**",
+        "/home/seohyeongmi/ros2_ws/install/turtlebot3_gazebo/include/**",
+        "/home/seohyeongmi/ros2_ws/install/turtlebot3_fake_node/include/**",
+        "/home/seohyeongmi/ros2_ws/install/ros2_interfaces_tutorial/include/**",
+        "/home/seohyeongmi/ros2_ws/install/mapf_dp_interfaces/include/**",
+        "/home/seohyeongmi/ros2_ws/install/custom_interfaces/include/**",
+        "/opt/ros/humble/include/**",
+        "include/**",
+        "/usr/include/**"
+      ],
+      "name": "ros2",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++17"
+    }
+  ],
+  "version": 4
+}
