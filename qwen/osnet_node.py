@@ -11,7 +11,7 @@ from cv_bridge import CvBridge
 
 from frontier_ws.msg import BboxImg, EmbArray
 
-from torchreid.reid.utils import FeatureExtractor
+from torchreid.utils import FeatureExtractor
 
 
 class OSNetSimilarity(Node):
