@@ -9,6 +9,7 @@ from launch.substitutions import LaunchConfiguration
 def generate_launch_description():
     python_executable = LaunchConfiguration("python_executable")
     script_path = LaunchConfiguration("script_path")
+    namespace = LaunchConfiguration("namespace")
 
     ld = LaunchDescription()
 
@@ -23,18 +24,22 @@ def generate_launch_description():
         description="Path to osnet_node.py. Override if you want to run the build copy.",
     ))
 
-    robots = ["tb3_0", "tb3_1"]
+    ld.add_action(DeclareLaunchArgument(
+        "namespace",
+        default_value="tb3_0",
+        description="Namespace of the single robot to run OSNet for.",
+    ))
 
-    for ns in robots:
-        ld.add_action(ExecuteProcess(
-            cmd=[
-                python_executable,
-                script_path,
-                "--ros-args",
-                "-r", f"__node:={ns}_osnet_similarity",
-                "-p", f"robot_id:={ns}",
-            ],
-            output="screen",
-        ))
+
+    ld.add_action(ExecuteProcess(
+        cmd=[
+            python_executable,
+            script_path,
+            "--ros-args",
+            "-r", ["__node:=", namespace, "_osnet_similarity"],
+            "-p", ["robot_id:=", namespace],
+        ],
+        output="screen",
+    ))
 
     return ld

@@ -8,10 +8,12 @@ import rclpy
 from rclpy.node import Node
 from collections import deque
 from cv_bridge import CvBridge
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
 from frontier_ws.msg import BboxImg, EmbArray
 
-from torchreid.reid.utils import FeatureExtractor
+from torchreid.utils import FeatureExtractor
+import time
 
 
 class OSNetSimilarity(Node):
@@ -34,24 +36,33 @@ class OSNetSimilarity(Node):
         ).value
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1000
+        )
 
+
+        start = time.perf_counter()
         # OSNet model
         self.extractor = FeatureExtractor(
-            model_name='osnet_x1_0',
+            model_name='osnet_x0_25',
             device=self.device
         )
+        elapsed = time.perf_counter() - start
+        self.get_logger().info(f"OSNet loaded in {elapsed:.3f} s")
 
         self.sub = self.create_subscription(
             BboxImg,
             self.bbox_image_topic,
             self.img_callback,
-            1000
+            qos
         )
 
         self.pub = self.create_publisher(
             EmbArray,
             self.embedding_topic,
-            1000
+            qos
         )
 
         self.app_pair_sub = self.create_subscription(
@@ -122,9 +133,9 @@ class OSNetSimilarity(Node):
             for img in pil_images
         ]
 
-        feats = self.extractor(np_images)
-
-        feats = F.normalize(feats, p=2, dim=1)
+        with torch.inference_mode():
+            feats = self.extractor(np_images)
+            feats = F.normalize(feats, p=2, dim=1)
 
         return feats
 
@@ -207,18 +218,20 @@ class OSNetSimilarity(Node):
             self.ros_images_to_pils(msg.track_crops)
             if track_count > 0 else []
         )
+        
+        all_pils = det_pils + track_pils 
 
-        det_emb = (
-            self.get_embedding_batch(det_pils)
-            if det_count > 0
+        all_emb = (
+            self.get_embedding_batch(all_pils)
+            if all_pils
             else torch.empty((0, 0))
         )
 
-        track_emb = (
-            self.get_embedding_batch(track_pils)
-            if track_count > 0
-            else torch.empty((0, 0))
-        )
+        det_emb = all_emb[:det_count]
+
+        track_emb = all_emb[
+            det_count:det_count + track_count
+        ]
 
         out = EmbArray()
 
